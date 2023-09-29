@@ -1,1 +1,1 @@
-# edx-harvardx-data-science-apex-capstone
+# edx-harvardx-data-science-apexlegends-capstone
