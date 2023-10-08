@@ -47,7 +47,7 @@ knitr::include_graphics("images/worlds_edge_map.png")
 knitr::include_graphics("images/storm_point_map.png")
 ```
 
-# Data
+# Data and Analysis
 
 ## Set Up
 
@@ -83,17 +83,32 @@ library(ggimage)
 library(gganimate)
 library(gridExtra)
 
-# Take a snapshot
-renv::snapshot()
-
 # Download the png file to the "images" directory
 worlds_edge_image_file <- "images/worlds_edge_map.png"
 if(!file.exists(worlds_edge_image_file))
-  download.file("https://static.wikia.nocookie.net/apexlegends_gamepedia_en/images/4/4f/World%27s_Edge_MU4.png/revision/latest/scale-to-width-down/800?cb=20230513185802", worlds_edge_image_file, mode = "wb")
+  download.file(
+    paste0(
+      "https://static.wikia.nocookie.net/",
+      "apexlegends_gamepedia_en/images/",
+      "4/4f/World%27s_Edge_MU4.png/",
+      "revision/latest/scale-to-width-down/800?cb=20230513185802"
+    ),
+    worlds_edge_image_file,
+    mode = "wb"
+  )
 # Download the png file to the "images" directory
 storm_point_image_file <- "images/storm_point_map.png"
 if(!file.exists(storm_point_image_file))
-  download.file("https://static.wikia.nocookie.net/apexlegends_gamepedia_en/images/5/56/Storm_Point_MU1.png/revision/latest/scale-to-width-down/800?cb=20220511235629", storm_point_image_file, mode = "wb")
+  download.file(
+    paste0(
+      "https://static.wikia.nocookie.net/",
+      "apexlegends_gamepedia_en/images/",
+      "5/56/Storm_Point_MU1.png/",
+      "revision/latest/scale-to-width-down/800?cb=20220511235629"
+    ),
+    storm_point_image_file,
+    mode = "wb"
+  )
 ```
 
 ## Initial Data
@@ -104,7 +119,14 @@ To start off this capstone project, I was not given any sort of initial data thi
 # Download the json file to the "data" directory
 json_file <- "data/apex.json"
 if(!file.exists(json_file))
-  download.file("https://raw.githubusercontent.com/bluelightgit/apex-zone-predict-machine-learning/main/zone_datas/zones_data.json", json_file)
+  download.file(
+    paste0(
+      "https://raw.githubusercontent.com/",
+      "bluelightgit/apex-zone-predict-machine-learning/",
+      "main/zone_datas/zones_data.json"
+    ),
+    json_file
+  )
 
 # Read and parse the json data
 json_data <- fromJSON(json_file)
@@ -178,8 +200,21 @@ distance_between <- rep(0.0, nrow(apex_data_long))
 # 2. or the last ring of the match (ring 5)
 # then calculate the distance between the two ring stages
 for (current_ring in 1:nrow(apex_data_long)) {
-  if (apex_data_long[current_ring,]$stage != 0 | apex_data_long[current_ring,]$stage != 5) {
-    distance_between[current_ring] <- sqrt((apex_data_long[current_ring + 1,]$x - apex_data_long[current_ring,]$x)^2 + (apex_data_long[current_ring + 1,]$y - apex_data_long[current_ring,]$y)^2)
+  if (
+    apex_data_long[current_ring,]$stage != 0 |
+    apex_data_long[current_ring,]$stage != 5
+  ) {
+    distance_between[current_ring] <-
+      sqrt(
+        (
+          apex_data_long[current_ring + 1,]$x -
+            apex_data_long[current_ring,]$x
+        )^2 +
+          (
+            apex_data_long[current_ring + 1,]$y -
+              apex_data_long[current_ring,]$y
+          )^2
+      )
   }
 }
 
@@ -199,8 +234,21 @@ angle_between <- rep(0.0, nrow(apex_data_long))
 # 2. or the last ring of the match (ring 5)
 # then calculate the angle between the two ring stages
 for (current_ring in 1:nrow(apex_data_long)) {
-  if (apex_data_long[current_ring,]$stage != 0 | apex_data_long[current_ring,]$stage != 5) {
-    angle_between[current_ring] <- atan((apex_data_long[current_ring + 1,]$y - apex_data_long[current_ring,]$y) / (apex_data_long[current_ring + 1,]$x - apex_data_long[current_ring,]$x))
+  if (
+    apex_data_long[current_ring,]$stage != 0 |
+    apex_data_long[current_ring,]$stage != 5
+  ) {
+    angle_between[current_ring] <-
+      atan(
+        (
+          apex_data_long[current_ring + 1,]$y -
+            apex_data_long[current_ring,]$y
+        ) /
+          (
+            apex_data_long[current_ring + 1,]$x -
+              apex_data_long[current_ring,]$x
+          )
+      )
   }
 }
 
@@ -236,19 +284,32 @@ apex_data_wide <- apex_data_wide %>%
     values_from = c(x, y, radius)
   ) %>%
   mutate(
-    distance_from_center_1 = sqrt((x_1 - mean(apex_data_wide$x))^2 + (y_1 - mean(apex_data_wide$y))^2),
-    distance_between_1_and_2 = sqrt((x_2 - x_1)^2 + (y_2 - y_1)^2),
-    angle_between_1_and_2 = atan((y_2 - y_1) / (x_2 - x_1)),
-    distance_from_center_2 = sqrt((x_2 - mean(apex_data_wide$x))^2 + (y_2 - mean(apex_data_wide$y))^2),
-    distance_between_2_and_3 = sqrt((x_3 - x_2)^2 + (y_3 - y_2)^2),
-    angle_between_2_and_3 = atan((y_3 - y_2) / (x_3 - x_2)),
-    distance_from_center_3 = sqrt((x_3 - mean(apex_data_wide$x))^2 + (y_3 - mean(apex_data_wide$y))^2),
-    distance_between_3_and_4 = sqrt((x_4 - x_3)^2 + (y_4 - y_3)^2),
-    angle_between_3_and_4 = atan((y_4 - y_3) / (x_4 - x_3)),
-    distance_from_center_4 = sqrt((x_4 - mean(apex_data_wide$x))^2 + (y_4 - mean(apex_data_wide$y))^2),
-    distance_between_4_and_5 = sqrt((x_5 - x_4)^2 + (y_5 - y_4)^2),
-    angle_between_4_and_5 = atan((y_5 - y_4) / (x_5 - x_4)),
-    distance_from_center_5 = sqrt((x_5 - mean(apex_data_wide$x))^2 + (y_5 - mean(apex_data_wide$y))^2),
+    distance_from_center_1 =
+      sqrt((x_1 - mean(apex_data_wide$x))^2 + (y_1 - mean(apex_data_wide$y))^2),
+    distance_between_1_and_2 =
+      sqrt((x_2 - x_1)^2 + (y_2 - y_1)^2),
+    angle_between_1_and_2 =
+      atan((y_2 - y_1) / (x_2 - x_1)),
+    distance_from_center_2 =
+      sqrt((x_2 - mean(apex_data_wide$x))^2 + (y_2 - mean(apex_data_wide$y))^2),
+    distance_between_2_and_3 =
+      sqrt((x_3 - x_2)^2 + (y_3 - y_2)^2),
+    angle_between_2_and_3 =
+      atan((y_3 - y_2) / (x_3 - x_2)),
+    distance_from_center_3 =
+      sqrt((x_3 - mean(apex_data_wide$x))^2 + (y_3 - mean(apex_data_wide$y))^2),
+    distance_between_3_and_4 =
+      sqrt((x_4 - x_3)^2 + (y_4 - y_3)^2),
+    angle_between_3_and_4 =
+      atan((y_4 - y_3) / (x_4 - x_3)),
+    distance_from_center_4 =
+      sqrt((x_4 - mean(apex_data_wide$x))^2 + (y_4 - mean(apex_data_wide$y))^2),
+    distance_between_4_and_5 =
+      sqrt((x_5 - x_4)^2 + (y_5 - y_4)^2),
+    angle_between_4_and_5 =
+      atan((y_5 - y_4) / (x_5 - x_4)),
+    distance_from_center_5 =
+      sqrt((x_5 - mean(apex_data_wide$x))^2 + (y_5 - mean(apex_data_wide$y))^2),
   )
 
 apex_data_wide[is.nan(apex_data_wide)] <- 0
@@ -266,7 +327,7 @@ Before I continue with the analysis portion of this capstone project, I would li
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
 # Summarize the radius data across rings on each map
 apex_data_long %>%
-  group_by(map, stage) %>% # Each map is different from the next, so only compare rings within the same map
+  group_by(map, stage) %>% # Only compare rings within the same map
   summarize(
     radius_average = mean(radius),
     radius_standard_deviation = sd(radius),
@@ -276,7 +337,7 @@ apex_data_long %>%
 
 # Summarize the ring area data across rings on each map
 apex_data_long %>%
-  group_by(map, stage) %>% # Each map is different from the next, so only compare rings within the same map
+  group_by(map, stage) %>% # Only compare rings within the same map
   summarize(
     area_average = mean(pi * radius^2),
     area_standard_deviation = sd(pi * radius^2),
@@ -286,7 +347,7 @@ apex_data_long %>%
 
 # Summarize the distance between rings data across rings on each map
 apex_data_long %>%
-  group_by(map, stage) %>% # Each map is different from the next, so only compare rings within the same map
+  group_by(map, stage) %>% # Only compare rings within the same map
   summarize(
     distance_between_average = mean(distance_between),
     distance_between_standard_deviation = sd(distance_between),
@@ -296,7 +357,7 @@ apex_data_long %>%
 
 # Summarize the angle between rings data across rings on each map
 apex_data_long %>%
-  group_by(map, stage) %>% # Each map is different from the next, so only compare rings within the same map
+  group_by(map, stage) %>% # Only compare rings within the same map
   summarize(
     angle_between_average = mean(angle_between),
     angle_between_standard_deviation = sd(angle_between),
@@ -365,9 +426,13 @@ y_train_set <- apex_data_wide[-y_test_index,]
 y_test_set <- apex_data_wide[y_test_index,]
 ```
 
-After conducting several test runs with the `caret`[@caret] package, I decided on a 50/50 split between the train and test sets. This combination produced the best RMSE against the `glm` method, which I will discuss further below.
+After conducting several test runs with the `caret`[@caret] package, I decided on a 50/50 split between the train and test sets. This combination produced the best RMSE against the "Generalized Linear Model", which is the method I used for the baseline for the rest of my analysis. In this capstone, I will construct the following models and evaluate how well each mode predicts the location of the final ring in an Apex Legends match:
 
-# Analysis
+1. Generalized Linear Model
+2. Generalized Linear Model with Stepwise Feature Selection
+3. Least Angle Regression
+
+# Model Testing and Results
 
 ## A Note On Accuracy
 
@@ -376,7 +441,7 @@ Because predicting the exact x and y coordinates out of these large maps will be
 I will also use the Root Mean Squared Error (or RMSE for short) to help evaluate the fit of my model towards the problem at hand. RMSE is a loss function used to evaluate how well an algorithm predicts outcomes. Creating a model that minimizes the RMSE indicates that the model is making accurate predictions. Mathematically, RMSE is defined as:
 
 $$ RMSE = \sqrt{MSE} = \sqrt{\frac{1}{N}\displaystyle\sum_{i=1}^N (\hat{y}_{i} - y_{i})^{2}} $$
-where $\hat{y}$ is a prediction, $y$ is an observed outcome, $N$ is the number of observations made, and $i$ is the current prediction/observation in the summation. We can calculate the RMSE with the following R code:
+where $\hat{y}$ is a predicted outcome, $y$ is an observed outcome, $N$ is the number of observations made, and $i$ is the current prediction/observation in the summation. We can calculate the RMSE with the following R code:
 
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
 RMSE <- function(observed, prediction) {
@@ -404,9 +469,10 @@ This method has no tuning parameters to tweak how the algorithm is run in the ba
 
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
 # Generalized Linear Model
-# Train a model to predict the x coordinate of the final stage of the ring in an Apex Legends match
+# Train a model to predict the x coordinate
+# of the final stage of the ring in an Apex Legends match
 x_model <- train(
-  x_5 ~ x_0 + x_1 + x_2 + x_3 + x_4, # Predict on the other 4 x coordinates of the other ring stages
+  x_5 ~ x_0 + x_1 + x_2 + x_3 + x_4,
   data = x_train_set,
   method = "glm"
 )
@@ -414,15 +480,33 @@ x_model <- train(
 # Make predictions for x_5 in the x_test_set based on the x_model
 x_predictions <- predict(x_model, newdata = x_test_set)
 
-# Since I'm not looking to be exact, evaluate the accuracy of the predictions on a sliding scale
-glm_x_accuracy_within_250_meters <- mean(x_predictions <= x_test_set$x_5 + 250 & x_predictions >= x_test_set$x_5 - 250)
-glm_x_accuracy_within_100_meters <- mean(x_predictions <= x_test_set$x_5 + 100 & x_predictions >= x_test_set$x_5 - 100)
-glm_x_accuracy_within_50_meters <- mean(x_predictions <= x_test_set$x_5 + 50 & x_predictions >= x_test_set$x_5 - 50)
-glm_x_accuracy_within_25_meters <- mean(x_predictions <= x_test_set$x_5 + 25 & x_predictions >= x_test_set$x_5 - 25)
+# Since I'm not looking to be exact,
+# evaluate the accuracy of the predictions on a sliding scale
+glm_x_accuracy_within_250_meters <-
+  mean(
+    x_predictions <= x_test_set$x_5 + 250 &
+      x_predictions >= x_test_set$x_5 - 250
+  )
+glm_x_accuracy_within_100_meters <-
+  mean(
+    x_predictions <= x_test_set$x_5 + 100 &
+      x_predictions >= x_test_set$x_5 - 100
+  )
+glm_x_accuracy_within_50_meters <-
+  mean(
+    x_predictions <= x_test_set$x_5 + 50 &
+      x_predictions >= x_test_set$x_5 - 50
+  )
+glm_x_accuracy_within_25_meters <-
+  mean(
+    x_predictions <= x_test_set$x_5 + 25 &
+      x_predictions >= x_test_set$x_5 - 25
+  )
 
-# Train a model to predict the y coordinate of the final stage of the ring in an Apex Legends match
+# Train a model to predict the y coordinate
+# of the final stage of the ring in an Apex Legends match
 y_model <- train(
-  y_5 ~ y_0 + y_1 + y_2 + y_3 + y_4, # Predict on the other 4 y coordinates of the other ring stages
+  y_5 ~ y_0 + y_1 + y_2 + y_3 + y_4,
   data = y_train_set,
   method = "glm"
 )
@@ -431,10 +515,26 @@ y_model <- train(
 y_predictions <- predict(y_model, newdata = y_test_set)
 
 # Since I'm not looking to be exact, evaluate the accuracy of the predictions on a sliding scale
-glm_y_accuracy_within_250_meters <- mean(y_predictions <= y_test_set$y_5 + 250 & y_predictions >= y_test_set$y_5 - 250)
-glm_y_accuracy_within_100_meters <- mean(y_predictions <= y_test_set$y_5 + 100 & y_predictions >= y_test_set$y_5 - 100)
-glm_y_accuracy_within_50_meters <- mean(y_predictions <= y_test_set$y_5 + 50 & y_predictions >= y_test_set$y_5 - 50)
-glm_y_accuracy_within_25_meters <- mean(y_predictions <= y_test_set$y_5 + 25 & y_predictions >= y_test_set$y_5 - 25)
+glm_y_accuracy_within_250_meters <-
+  mean(
+    y_predictions <= y_test_set$y_5 + 250 &
+      y_predictions >= y_test_set$y_5 - 250
+  )
+glm_y_accuracy_within_100_meters <-
+  mean(
+    y_predictions <= y_test_set$y_5 + 100 &
+      y_predictions >= y_test_set$y_5 - 100
+  )
+glm_y_accuracy_within_50_meters <-
+  mean(
+    y_predictions <= y_test_set$y_5 + 50 &
+      y_predictions >= y_test_set$y_5 - 50
+  )
+glm_y_accuracy_within_25_meters <-
+  mean(
+    y_predictions <= y_test_set$y_5 + 25 &
+      y_predictions >= y_test_set$y_5 - 25
+  )
 
 # Print and save the accuracy results to a results variable
 accuracy_results <- data.frame(
@@ -498,39 +598,75 @@ This method is similar to the "Generalized Linear Model" method, except that it 
 
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
 # Generalized Linear Model With Stepwise Feature Selection
-# Train a model to predict the x coordinate of the final stage of the ring in an Apex Legends match
+# Train a model to predict the x coordinate
+# of the final stage of the ring in an Apex Legends match
 x_model <- train(
-  x_5 ~ x_0 + x_1 + x_2 + x_3 + x_4, # Predict on the other 4 x coordinates of the other ring stages
+  x_5 ~ x_0 + x_1 + x_2 + x_3 + x_4,
   data = x_train_set,
   method = "glmStepAIC",
-  verbose = FALSE # suppress verbose output
+  trace = 0 # Suppress verbose output
 )
 
 # Make predictions for x_5 in the x_test_set based on the x_model
 x_predictions <- predict(x_model, newdata = x_test_set)
 
-# Since I'm not looking to be exact, evaluate the accuracy of the predictions on a sliding scale
-glmStepAIC_x_accuracy_within_250_meters <- mean(x_predictions <= x_test_set$x_5 + 250 & x_predictions >= x_test_set$x_5 - 250)
-glmStepAIC_x_accuracy_within_100_meters <- mean(x_predictions <= x_test_set$x_5 + 100 & x_predictions >= x_test_set$x_5 - 100)
-glmStepAIC_x_accuracy_within_50_meters <- mean(x_predictions <= x_test_set$x_5 + 50 & x_predictions >= x_test_set$x_5 - 50)
-glmStepAIC_x_accuracy_within_25_meters <- mean(x_predictions <= x_test_set$x_5 + 25 & x_predictions >= x_test_set$x_5 - 25)
+# Since I'm not looking to be exact,
+# evaluate the accuracy of the predictions on a sliding scale
+glmStepAIC_x_accuracy_within_250_meters <-
+  mean(
+    x_predictions <= x_test_set$x_5 + 250 &
+      x_predictions >= x_test_set$x_5 - 250
+  )
+glmStepAIC_x_accuracy_within_100_meters <-
+  mean(
+    x_predictions <= x_test_set$x_5 + 100 &
+      x_predictions >= x_test_set$x_5 - 100
+  )
+glmStepAIC_x_accuracy_within_50_meters <-
+  mean(
+    x_predictions <= x_test_set$x_5 + 50 &
+      x_predictions >= x_test_set$x_5 - 50
+  )
+glmStepAIC_x_accuracy_within_25_meters <-
+  mean(
+    x_predictions <= x_test_set$x_5 + 25 &
+      x_predictions >= x_test_set$x_5 - 25
+  )
 
-# Train a model to predict the y coordinate of the final stage of the ring in an Apex Legends match
+# Train a model to predict the y coordinate
+# of the final stage of the ring in an Apex Legends match
 y_model <- train(
-  y_5 ~ y_0 + y_1 + y_2 + y_3 + y_4, # Predict on the other 4 y coordinates of the other ring stages
+  y_5 ~ y_0 + y_1 + y_2 + y_3 + y_4,
   data = y_train_set,
   method = "glmStepAIC",
-  verbose = FALSE # suppress verbose output
+  trace = 0 # Suppress verbose output
 )
 
 # Make predictions for y_5 in the y_test_set based on the y_model
 y_predictions <- predict(y_model, newdata = y_test_set)
 
-# Since I'm not looking to be exact, evaluate the accuracy of the predictions on a sliding scale
-glmStepAIC_y_accuracy_within_250_meters <- mean(y_predictions <= y_test_set$y_5 + 250 & y_predictions >= y_test_set$y_5 - 250)
-glmStepAIC_y_accuracy_within_100_meters <- mean(y_predictions <= y_test_set$y_5 + 100 & y_predictions >= y_test_set$y_5 - 100)
-glmStepAIC_y_accuracy_within_50_meters <- mean(y_predictions <= y_test_set$y_5 + 50 & y_predictions >= y_test_set$y_5 - 50)
-glmStepAIC_y_accuracy_within_25_meters <- mean(y_predictions <= y_test_set$y_5 + 25 & y_predictions >= y_test_set$y_5 - 25)
+# Since I'm not looking to be exact,
+# evaluate the accuracy of the predictions on a sliding scale
+glmStepAIC_y_accuracy_within_250_meters <-
+  mean(
+    y_predictions <= y_test_set$y_5 + 250 &
+      y_predictions >= y_test_set$y_5 - 250
+  )
+glmStepAIC_y_accuracy_within_100_meters <-
+  mean(
+    y_predictions <= y_test_set$y_5 + 100 &
+      y_predictions >= y_test_set$y_5 - 100
+  )
+glmStepAIC_y_accuracy_within_50_meters <-
+  mean(
+    y_predictions <= y_test_set$y_5 + 50 &
+      y_predictions >= y_test_set$y_5 - 50
+  )
+glmStepAIC_y_accuracy_within_25_meters <-
+  mean(
+    y_predictions <= y_test_set$y_5 + 25 &
+      y_predictions >= y_test_set$y_5 - 25
+  )
 
 # Print and save the accuracy results to a results variable
 accuracy_results <- bind_rows(
@@ -599,9 +735,10 @@ This is a different type of regression from the linear regression we are used to
 
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
 # Least Angle Regression
-# Train a model to predict the x coordinate of the final stage of the ring in an Apex Legends match
+# Train a model to predict the x coordinate
+# of the final stage of the ring in an Apex Legends match
 x_model <- train(
-  x_5 ~ x_0 + x_1 + x_2 + x_3 + x_4, # Predict on the other 4 x coordinates of the other ring stages
+  x_5 ~ x_0 + x_1 + x_2 + x_3 + x_4,
   data = x_train_set,
   method = "lars"
 )
@@ -609,15 +746,33 @@ x_model <- train(
 # Make predictions for x_5 in the x_test_set based on the x_model
 x_predictions <- predict(x_model, newdata = x_test_set)
 
-# Since I'm not looking to be exact, evaluate the accuracy of the predictions on a sliding scale
-lars_x_accuracy_within_250_meters <- mean(x_predictions <= x_test_set$x_5 + 250 & x_predictions >= x_test_set$x_5 - 250)
-lars_x_accuracy_within_100_meters <- mean(x_predictions <= x_test_set$x_5 + 100 & x_predictions >= x_test_set$x_5 - 100)
-lars_x_accuracy_within_50_meters <- mean(x_predictions <= x_test_set$x_5 + 50 & x_predictions >= x_test_set$x_5 - 50)
-lars_x_accuracy_within_25_meters <- mean(x_predictions <= x_test_set$x_5 + 25 & x_predictions >= x_test_set$x_5 - 25)
+# Since I'm not looking to be exact,
+# evaluate the accuracy of the predictions on a sliding scale
+lars_x_accuracy_within_250_meters <-
+  mean(
+    x_predictions <= x_test_set$x_5 + 250 &
+      x_predictions >= x_test_set$x_5 - 250
+  )
+lars_x_accuracy_within_100_meters <-
+  mean(
+    x_predictions <= x_test_set$x_5 + 100 &
+      x_predictions >= x_test_set$x_5 - 100
+  )
+lars_x_accuracy_within_50_meters <-
+  mean(
+    x_predictions <= x_test_set$x_5 + 50 &
+      x_predictions >= x_test_set$x_5 - 50
+  )
+lars_x_accuracy_within_25_meters <-
+  mean(
+    x_predictions <= x_test_set$x_5 + 25 &
+      x_predictions >= x_test_set$x_5 - 25
+  )
 
-# Train a model to predict the y coordinate of the final stage of the ring in an Apex Legends match
+# Train a model to predict the y coordinate
+# of the final stage of the ring in an Apex Legends match
 y_model <- train(
-  y_5 ~ y_0 + y_1 + y_2 + y_3 + y_4, # Predict on the other 4 y coordinates of the other ring stages
+  y_5 ~ y_0 + y_1 + y_2 + y_3 + y_4,
   data = y_train_set,
   method = "lars"
 )
@@ -625,11 +780,28 @@ y_model <- train(
 # Make predictions for y_5 in the y_test_set based on the y_model
 y_predictions <- predict(y_model, newdata = y_test_set)
 
-# Since I'm not looking to be exact, evaluate the accuracy of the predictions on a sliding scale
-lars_y_accuracy_within_250_meters <- mean(y_predictions <= y_test_set$y_5 + 250 & y_predictions >= y_test_set$y_5 - 250)
-lars_y_accuracy_within_100_meters <- mean(y_predictions <= y_test_set$y_5 + 100 & y_predictions >= y_test_set$y_5 - 100)
-lars_y_accuracy_within_50_meters <- mean(y_predictions <= y_test_set$y_5 + 50 & y_predictions >= y_test_set$y_5 - 50)
-lars_y_accuracy_within_25_meters <- mean(y_predictions <= y_test_set$y_5 + 25 & y_predictions >= y_test_set$y_5 - 25)
+# Since I'm not looking to be exact,
+# evaluate the accuracy of the predictions on a sliding scale
+lars_y_accuracy_within_250_meters <-
+  mean(
+    y_predictions <= y_test_set$y_5 + 250 &
+      y_predictions >= y_test_set$y_5 - 250
+  )
+lars_y_accuracy_within_100_meters <-
+  mean(
+    y_predictions <= y_test_set$y_5 + 100 &
+      y_predictions >= y_test_set$y_5 - 100
+  )
+lars_y_accuracy_within_50_meters <-
+  mean(
+    y_predictions <= y_test_set$y_5 + 50 &
+      y_predictions >= y_test_set$y_5 - 50
+  )
+lars_y_accuracy_within_25_meters <-
+  mean(
+    y_predictions <= y_test_set$y_5 + 25 &
+      y_predictions >= y_test_set$y_5 - 25
+  )
 
 # Print and save the accuracy results to a results variable
 accuracy_results <- bind_rows(
