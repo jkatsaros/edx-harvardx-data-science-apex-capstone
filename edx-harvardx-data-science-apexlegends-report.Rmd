@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 
-Similar to movies in my previous capstone, Apex Legends is a video game that is very close to my heart. Recently, my brother had the amazing opportunity to pursue a new job in Charlotte, North Carolina, far away from where I currently live. Apex Legends is one way that I get to spend time with my brother, usually on a weekly basis. I always look forward to the time I get to start up a match and just chat with my brother (the game is fun, too). This is why I chose to investigate an aspect of Apex Legends that can possibly be predicted by machine learning. While I know this will not make me better at the game, I still look forward to learning and building something around a special aspect of my life. Through this capstone, I will explain what exactly Apex Legends is, find match data for Apex Legend's main method of gameplay and tidy said data, and create a model to predict the final state of Apex Legends games.
+Apex Legends is a video game that is very close to my heart. Recently, my brother had the amazing opportunity to pursue a new job in Charlotte, North Carolina, far away from where I currently live. Apex Legends is one way that I get to spend time with my brother, usually on a weekly basis. I always look forward to the time I get to start up a match and just chat with my brother (the game is fun, too). This is why I chose to investigate an aspect of Apex Legends that can possibly be predicted by machine learning. While I know this will not make me better at the game, I look forward to learning and building something around a special pasttime. Through this capstone, I will explain what exactly Apex Legends is, find match data for Apex Legend's main method of gameplay and tidy said data, and create a model to predict the final state of Apex Legends games.
 
 ## Motivation
 
@@ -24,7 +24,7 @@ Recently, the company I currently work for put me in an interesting (albeit awkw
 
 ## Overview
 
-Apex Legends[@ApexLegends_About] is a competitive, online first person shooter (FPS) video game developed by Respawn Entertainment and published by Electronic Arts. In Apex Legends, you select a character from a growing cast, each with their own unique passive ability, tactical ability (an ability you can use frequently), and an ultimate ability (a powerful ability you can use infrequently) to beat the other teams (called squads) at some objective, using the vast arsenal of weapons and tools provided to you during each match. While I am not very good at the game yet, I do like to play the character Valkyrie[@ApexLegends_Characters].
+Apex Legends[@ApexLegends_About] is a competitive, online first person shooter (FPS) video game developed by Respawn Entertainment and published by Electronic Arts. In Apex Legends, you select a character from a growing cast, each with its own unique passive ability, tactical ability (an ability you can use frequently), and an ultimate ability (a powerful ability you can use infrequently) to beat the other teams (called squads) at some objective, using the vast arsenal of weapons and tools provided to you during each match. While I am not very good at the game yet, I do like to play the character Valkyrie[@ApexLegends_Characters].
 
 While there are many modes of gameplay in Apex (in fact, Respawn Entertainment likes to experiment with different rules, maps, mechanics, etc.), the original mode and focus of this capstone project is the battle royale mode[@ApexLegends_BattleRoyale]. In battle royale, your squad of three players work together on one big map to eliminate the other nineteen squads (for 60 players total) before they cut you and your teammates out of the game. You can eliminate another player by dealing damage equal to or exceeding their character's health pool plus whatever armor their character might have found and put on during the match. Over the course of the game, a ring closes in on the map, which will deal damage to any player outside of its boundaries, with the purpose of forcing squads closer and closer together, until the ring encompasses everything, putting a final timer on the match. Each match of battle royale has five distinct rings, with the match starting with no ring and ending with the ring covering everything. The five rounds of the ring transition between states at a set period of time within each match and deal different amounts of damage to players to put a timebox on the game. You can see the ring information as shown below[@ccamfpsApex]:
 
@@ -150,7 +150,7 @@ Firstly, I want to tidy up the Apex Legends match data, which will make viewing 
 
 1. Currently, the x and y coordinates of each stage of the ring within each game in the data set are nested within their own data frame. To make the x and y coordinates easier to access, I want to bring them out from their own nested data frame and into each row.
 2. The `map` column is not very human-readable at the moment, with `we` corresponding to `World's Edge` and `sp` corresponding to `Storm Point`. I want to convert the `map` column into a factor and also change the name of said factors to be very clear what map each row matches with.
-3. Speaking of factors, I will also make the `stage` and `gameID` columns factors.
+3. Speaking of factors, I will also make the `stage` and `gameID` columns factors, where `stage` represents the current phase of the ring in an Apex Legends map, and `gameID` represents a unique identifier for each game in the Apex Legends data
 
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
 # Copy the apex data to a new variable for manipulation
@@ -174,7 +174,7 @@ save(apex_data_tidy, file = "rda/apex_data_tidy.rda")
 
 After cleaning up the Apex Legends match data a little bit, there is also some information that I would like to calculate and represent in the data, which I believe will be helpful later on when creating the model for predicting the final ring state in a match.
 
-1. The distance between each ring stage, calculated like so:
+1. The distance between each ring stage, calculated using the equation to find the length of the hypotenuse of a triangle:
 
 $$ \sqrt{(x_{i+1} - x_i)^2 + (y_{i+1} - y_i)^2} $$
 where $i$ represents the ring stages, 1 through 5 (0 being the ring stage where there is no ring on the map).
@@ -365,9 +365,9 @@ apex_data_long %>%
 
 After summarizing the data, we can now see that:
 
-1. The size of each stage of the ring are consistent across games on each map
-2. The distance between each stage of the ring is mostly consistent across games on each map
-3. The angle between each stage of the ring is also mostly consistent across games on each map
+1. The size of each stage of the ring are consistent across games on each map, meaning that the standard deviations of the radii of each ring on each map are very small
+2. The distance between each stage of the ring is mostly consistent across games on each map, meaning that the standard deviations of the distances between each ring on each map is relatively small compared to the size of a map in Apex Legends
+3. The angle between each stage of the ring is also mostly consistent across games on each map, meaning that the standard deviations of the angles between each ring on each map is relatively small compared to the size of a map in Apex Legends
 
 These three facts mean that I should be able to predict the final ring location in a game fairly accurately. Below are two plots superimposed on top of an image of each map to give the general idea of where each stage of the ring travels on each map.
 
@@ -452,11 +452,11 @@ The `caret`[@caret] package also contains a function to calculate the RMSE:
 ?caret::RMSE()
 ```
 
-In this case, however, since I am already using the `caret`[@caret] package to create the models (unlike in my MovieLens capstone), the model object already contains the RMSE information, which means there is no need to calculate it separately.
+In this case, however, since I am already using the `caret`[@caret] package to create the models, the model object already contains the RMSE information, which means there is no need to calculate it separately.
 
 ## Generalized Linear Model
 
-The first method I am going to use to train my models to predict the location of the final ring in an Apex Legends match will be the "Generalized Linear Model" method, or `glm` for short. `glm` is essentially linear regression covered in the HarvardX Data Science course previously as well as in my other capstone project, the MovieLens recommendation analysis with the main difference being that the "Generalized Linear Model" can fit more complex models than just regular linear regression. To see more information about this method, you can execute the R code seen below.
+The first method I am going to use to train my models to predict the location of the final ring in an Apex Legends match will be the "Generalized Linear Model" method, or `glm` for short. `glm` is essentially linear regression with the main difference being that the "Generalized Linear Model" can fit more complex models than just regular linear regression. To see more information about this method, you can execute the R code seen below.
 
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = FALSE}
 getModelInfo("glm")
@@ -561,27 +561,32 @@ rmse_results %>% knitr::kable()
 save(rmse_results, file = "rda/rmse_results.rda")
 ```
 
-As we can see, these basic models have an accuracy in the upper 80s for within 250 meters, give or take, which I would say is very good. Movement characters (like Valkyrie) can easily reposition your squad hundreds of meters at a time, so these predictions will get us pretty much right where we need to be. The RMSEs is not as good as our MovieLens capstone project RMSEs, but because we're not looking for pinpoint accuracy in this project, the RMSEs here are still in a good spot.
+As we can see, these basic models have an accuracy in the upper 80s for within 250 meters, give or take, which I would say is very good. Movement characters (like Valkyrie) can easily reposition your squad hundreds of meters at a time, so these predictions will get us pretty much right where we need to be. The RMSEs is not close to zero, but because we're not looking for pinpoint accuracy in this project, the RMSEs here are still in a good spot.
 
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
-# Set the ring diameter to 100
-ring_5_diameter <- 100
-# Plot a circle the size of the final ring for each x and y coordinate prediction
-predictions_plot <- data.frame(x_predictions, y_predictions) %>%
-  ggplot(aes(x0 = x_predictions, y0 = y_predictions, r = ring_5_diameter / 2)) +
-  geom_circle() +
-  ggtitle("Predictions")
-# Plot a circle the size of the final ring for each actual x and y coordinate
-actuals_plot <- apex_data_wide %>%
-  filter(gameID %in% x_test_set$gameID) %>%
-  ggplot(aes(x0 = x_5, y0 = y_5, r = ring_5_diameter / 2)) +
-  geom_circle() +
-  ggtitle("Actuals")
-# Display the two plots side-by-side
-grid.arrange(predictions_plot, actuals_plot, ncol = 2)
+# Plot the fitted against the residuals of the x_model
+# to see if there are any trends in the variance
+# This is a test to see if there are any problems with the x_model
+x_model$finalModel %>%
+  ggplot(aes(.fitted, .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  xlab("Final Model Fitted Values") +
+  ylab("Final Model Residuals") +
+  ggtitle("Fitted Values versus Residuals of X in GLM Model")
+# Plot the fitted against the residuals of the y_model
+# to see if there are any trends in the variance
+# This is a test to see if there are any problems with the y_model
+y_model$finalModel %>%
+  ggplot(aes(.fitted, .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  xlab("Final Model Fitted Values") +
+  ylab("Final Model Residuals") +
+  ggtitle("Fitted Values versus Residuals of Y in GLM Model")
 ```
 
-The plots above show the locations of the predicted final rings, with the x and y coordinates now combined, against the actual final ring locations for the games in the test sets. While the two plots may look dissimilar, the general shape and locations of the predicted final rings follow the trend set forth by the actual final ring locations, which is a good sign. 
+The plots above demonstrate that the variance across the `x_model` and `y_model` are consistent, meaning that the model is not heavily favoring high values or low values and that there are no patterns across the random observed variables. This means that there are no evident problems with this "Generalized Linear Model".  
 
 ## Generalized Linear Model With Stepwise Feature Selection
 
@@ -702,42 +707,51 @@ save(rmse_results, file = "rda/rmse_results.rda")
 The rest of the R code is similar to the "Generalized Linear Model" code, where I gather the accuracy and and RMSEs of each model's predictions. Below is the plot displaying the predicted final ring locations against the actual final ring locations.
 
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
-# Plot a circle the size of the final ring for each x and y coordinate prediction
-predictions_plot <- data.frame(x_predictions, y_predictions) %>%
-  ggplot(aes(x0 = x_predictions, y0 = y_predictions, r = ring_5_diameter / 2)) +
-  geom_circle() +
-  ggtitle("Predictions")
-# Plot a circle the size of the final ring for each actual x and y coordinate
-actuals_plot <- apex_data_wide %>%
-  filter(gameID %in% x_test_set$gameID) %>%
-  ggplot(aes(x0 = x_5, y0 = y_5, r = ring_5_diameter / 2)) +
-  geom_circle() +
-  ggtitle("Actuals")
-# Display the two plots side-by-side
-grid.arrange(predictions_plot, actuals_plot, ncol = 2)
+# Plot the fitted against the residuals of the x_model
+# to see if there are any trends in the variance
+# This is a test to see if there are any problems with the x_model
+x_model$finalModel %>%
+  ggplot(aes(.fitted, .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  xlab("Final Model Fitted Values") +
+  ylab("Final Model Residuals") +
+  ggtitle("Fitted Values versus Residuals of X in GLMSTEPAIC Model")
+# Plot the fitted against the residuals of the y_model
+# to see if there are any trends in the variance
+# This is a test to see if there are any problems with the y_model
+y_model$finalModel %>%
+  ggplot(aes(.fitted, .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  xlab("Final Model Fitted Values") +
+  ylab("Final Model Residuals") +
+  ggtitle("Fitted Values versus Residuals of Y in GLMSTEPAIC Model")
 ```
 
-## Least Angle Regression
+Again, here are the plots that test the "Generalized Linear Model with Stepwise Feature Selection" models for any issues in variance, which I do not detect here.
 
-After testing a large number of algorithms made available through the `caret`[@caret], I decided on using the "Least Angle Regression" method, or `lars` for short. You can see more information about this method as well by executing the R code shown below.
+## Cubist Regression
+
+After testing a large number of algorithms made available through the `caret`[@caret], I decided on using the "Cubist Regression" method, or `cubist` for short. You can see more information about this method as well by executing the R code shown below.
 
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = FALSE}
-getModelInfo("lars")
+getModelInfo("cubist")
 ```
 
-This is a different type of regression from the linear regression we are used to seeing. Here, the regression will find which predictor has the highest correlation with the target and tries to fit a model that will plot an angle most similarly to that of the angle made by the plot of the target. I chose this algorithm out of all the others that I tested because
+This is a different type of regression from the linear regression we are used to seeing. Here, the "Cubist Regression" will a tree where each leaf on the tree is a linear regression. The "Cubist Regression" smooths the predictions taking into account previous linear regressions recursively all the way back up to the root of the tree. In the end, this tree creates a set of rules with which the model will make its predictions. I chose this algorithm out of all the others that I tested because:
 
 1. The RMSE most closely resembled those that have already been shown in this capstone, and
-2. When viewing the various stages of the ring in an Apex Legends match, you could capture the distance and angle of the trajectory of the ring by drawing lines in between the center points of the ring location at its different stages.
+2. Since I have proven thus far that it is possible to , reasonably, there must be a set of rules that Apex Legends uses to decide where the location of the final ring will fall. This is especially true in the Apex Legends Global Series (ALGS), the global tournament held throughout the year for Apex Legends battle royale where e-sports teams from all over the Earth battle it out to be the best of the best at Apex Legends. The ring destinations in each match for the ALGS are predetermined to create the most interesting situations in each game, which means there are rules that ultimately decide the location of the final ring in an Apex Legends match.
 
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
-# Least Angle Regression
+# Cubist Regression
 # Train a model to predict the x coordinate
 # of the final stage of the ring in an Apex Legends match
 x_model <- train(
   x_5 ~ x_0 + x_1 + x_2 + x_3 + x_4,
   data = x_train_set,
-  method = "lars"
+  method = "cubist"
 )
 
 # Make predictions for x_5 in the x_test_set based on the x_model
@@ -745,22 +759,22 @@ x_predictions <- predict(x_model, newdata = x_test_set)
 
 # Since I'm not looking to be exact,
 # evaluate the accuracy of the predictions on a sliding scale
-lars_x_accuracy_within_250_meters <-
+cubist_x_accuracy_within_250_meters <-
   mean(
     x_predictions <= x_test_set$x_5 + 250 &
       x_predictions >= x_test_set$x_5 - 250
   )
-lars_x_accuracy_within_100_meters <-
+cubist_x_accuracy_within_100_meters <-
   mean(
     x_predictions <= x_test_set$x_5 + 100 &
       x_predictions >= x_test_set$x_5 - 100
   )
-lars_x_accuracy_within_50_meters <-
+cubist_x_accuracy_within_50_meters <-
   mean(
     x_predictions <= x_test_set$x_5 + 50 &
       x_predictions >= x_test_set$x_5 - 50
   )
-lars_x_accuracy_within_25_meters <-
+cubist_x_accuracy_within_25_meters <-
   mean(
     x_predictions <= x_test_set$x_5 + 25 &
       x_predictions >= x_test_set$x_5 - 25
@@ -771,7 +785,7 @@ lars_x_accuracy_within_25_meters <-
 y_model <- train(
   y_5 ~ y_0 + y_1 + y_2 + y_3 + y_4,
   data = y_train_set,
-  method = "lars"
+  method = "cubist"
 )
 
 # Make predictions for y_5 in the y_test_set based on the y_model
@@ -779,22 +793,22 @@ y_predictions <- predict(y_model, newdata = y_test_set)
 
 # Since I'm not looking to be exact,
 # evaluate the accuracy of the predictions on a sliding scale
-lars_y_accuracy_within_250_meters <-
+cubist_y_accuracy_within_250_meters <-
   mean(
     y_predictions <= y_test_set$y_5 + 250 &
       y_predictions >= y_test_set$y_5 - 250
   )
-lars_y_accuracy_within_100_meters <-
+cubist_y_accuracy_within_100_meters <-
   mean(
     y_predictions <= y_test_set$y_5 + 100 &
       y_predictions >= y_test_set$y_5 - 100
   )
-lars_y_accuracy_within_50_meters <-
+cubist_y_accuracy_within_50_meters <-
   mean(
     y_predictions <= y_test_set$y_5 + 50 &
       y_predictions >= y_test_set$y_5 - 50
   )
-lars_y_accuracy_within_25_meters <-
+cubist_y_accuracy_within_25_meters <-
   mean(
     y_predictions <= y_test_set$y_5 + 25 &
       y_predictions >= y_test_set$y_5 - 25
@@ -804,15 +818,15 @@ lars_y_accuracy_within_25_meters <-
 accuracy_results <- bind_rows(
   accuracy_results,
   data.frame(
-    method = "lars",
-    x_250 = lars_x_accuracy_within_250_meters,
-    x_100 = lars_x_accuracy_within_100_meters,
-    x_50 = lars_x_accuracy_within_50_meters,
-    x_25 = lars_x_accuracy_within_25_meters,
-    y_250 = lars_y_accuracy_within_250_meters,
-    y_100 = lars_y_accuracy_within_100_meters,
-    y_50 = lars_y_accuracy_within_50_meters,
-    y_25 = lars_y_accuracy_within_25_meters
+    method = "cubist",
+    x_250 = cubist_x_accuracy_within_250_meters,
+    x_100 = cubist_x_accuracy_within_100_meters,
+    x_50 = cubist_x_accuracy_within_50_meters,
+    x_25 = cubist_x_accuracy_within_25_meters,
+    y_250 = cubist_y_accuracy_within_250_meters,
+    y_100 = cubist_y_accuracy_within_100_meters,
+    y_50 = cubist_y_accuracy_within_50_meters,
+    y_25 = cubist_y_accuracy_within_25_meters
   )
 )
 accuracy_results %>% knitr::kable()
@@ -823,7 +837,7 @@ save(accuracy_results, file = "rda/accuracy_results.rda")
 rmse_results <- bind_rows(
   rmse_results,
   data.frame(
-    method = "lars",
+    method = "cubist",
     x_RMSE = x_model$results$RMSE,
     y_RMSE = y_model$results$RMSE
   )
@@ -834,22 +848,39 @@ rmse_results %>% knitr::kable()
 save(rmse_results, file = "rda/rmse_results.rda")
 ```
 
-Again, the rest of the R code should be familiar, where I gather the accuracy and and RMSEs of each model's predictions. Also, below is the usual plot displaying the predicted final ring locations against the actual final ring locations.
+Again, the rest of the R code should be familiar, where I gather the accuracy and and RMSEs of each model's predictions. Also, below is the usual plot displaying if there are any patterns to the variance in the model, of which there are none.
 
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
-# Plot a circle the size of the final ring for each x and y coordinate prediction
-predictions_plot <- data.frame(x_predictions, y_predictions) %>%
-  ggplot(aes(x0 = x_predictions, y0 = y_predictions, r = ring_5_diameter / 2)) +
-  geom_circle() +
-  ggtitle("Predictions")
-# Plot a circle the size of the final ring for each actual x and y coordinate
-actuals_plot <- apex_data_wide %>%
-  filter(gameID %in% x_test_set$gameID) %>%
-  ggplot(aes(x0 = x_5, y0 = y_5, r = ring_5_diameter / 2)) +
-  geom_circle() +
-  ggtitle("Actuals")
-# Display the two plots side-by-side
-grid.arrange(predictions_plot, actuals_plot, ncol = 2)
+# Plot the fitted against the residuals of the x_model
+# to see if there are any trends in the variance
+# This is a test to see if there are any problems with the x_model
+# Since "cubist" comes from a different library
+# I have to create my own data frame for plotting
+data.frame(
+  fitted = x_predictions,
+  resid = x_predictions - x_test_set$x_5
+) %>%
+  ggplot(aes(fitted, resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  xlab("Final Model Fitted Values") +
+  ylab("Final Model Residuals") +
+  ggtitle("Fitted Values versus Residuals of X in CUBIST Model")
+# Plot the fitted against the residuals of the y_model
+# to see if there are any trends in the variance
+# This is a test to see if there are any problems with the y_model
+# Since "cubist" comes from a different library
+# I have to create my own data frame for plotting
+data.frame(
+  fitted = y_predictions,
+  resid = y_predictions - y_test_set$y_5
+) %>%
+  ggplot(aes(fitted, resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  xlab("Final Model Fitted Values") +
+  ylab("Final Model Residuals") +
+  ggtitle("Fitted Values versus Residuals of Y in CUBIST Model")
 ```
 
 # Conclusion
@@ -866,7 +897,7 @@ Also, here are where the RMSE results for each method stand.
 rmse_results %>% knitr::kable()
 ```
 
-As we can see, the "Generalized Linear Model With Stepwise Feature Selection" had the best RMSE for the x coordinate, an iteration of the "Least Angle Regression" had the best RMSE for the y coordinate, and both the "Generalized Linear Model" and "Least Angle Regression" had similar scores when it came to accuracy across the board. This indicates to me that, in the future, an ensemble algorithm, where multiple algorithms work together, would best suit a model for predicting the final ring position in an Apex Legends match, and that the same algorithm is not necessarily the best fit for the x and the y coordinates of said ring position.
+As we can see, the "Generalized Linear Model With Stepwise Feature Selection" had the best RMSE for the x coordinate, an iteration of the "Cubist Regression" had the best RMSE for the y coordinate, and both the "Generalized Linear Model With Stepwise Feature Selection" and "Least Angle Regression" had similar scores when it came to accuracy across the board. This indicates to me that, in the future, an ensemble algorithm, where multiple algorithms work together, would best suit a model for predicting the final ring position in an Apex Legends match, and that the same algorithm is not necessarily the best fit for the x and the y coordinates of said ring position.
 
 ## Future Considerations
 

@@ -388,21 +388,26 @@ rmse_results %>% knitr::kable()
 # Save the results to a RData file
 save(rmse_results, file = "rda/rmse_results.rda")
 
-# Set the ring diameter to 100
-ring_5_diameter <- 100
-# Plot a circle the size of the final ring for each x and y coordinate prediction
-predictions_plot <- data.frame(x_predictions, y_predictions) %>%
-  ggplot(aes(x0 = x_predictions, y0 = y_predictions, r = ring_5_diameter / 2)) +
-  geom_circle() +
-  ggtitle("Predictions")
-# Plot a circle the size of the final ring for each actual x and y coordinate
-actuals_plot <- apex_data_wide %>%
-  filter(gameID %in% x_test_set$gameID) %>%
-  ggplot(aes(x0 = x_5, y0 = y_5, r = ring_5_diameter / 2)) +
-  geom_circle() +
-  ggtitle("Actuals")
-# Display the two plots side-by-side
-grid.arrange(predictions_plot, actuals_plot, ncol = 2)
+# Plot the fitted against the residuals of the x_model
+# to see if there are any trends in the variance
+# This is a test to see if there are any problems with the x_model
+x_model$finalModel %>%
+  ggplot(aes(.fitted, .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  xlab("Final Model Fitted Values") +
+  ylab("Final Model Residuals") +
+  ggtitle("Fitted Values versus Residuals of X in GLM Model")
+# Plot the fitted against the residuals of the y_model
+# to see if there are any trends in the variance
+# This is a test to see if there are any problems with the y_model
+y_model$finalModel %>%
+  ggplot(aes(.fitted, .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  xlab("Final Model Fitted Values") +
+  ylab("Final Model Residuals") +
+  ggtitle("Fitted Values versus Residuals of Y in GLM Model")
 
 # Generalized Linear Model With Stepwise Feature Selection
 # Train a model to predict the x coordinate
@@ -508,27 +513,34 @@ rmse_results %>% knitr::kable()
 # Save the results to a RData file
 save(rmse_results, file = "rda/rmse_results.rda")
 
-# Plot a circle the size of the final ring for each x and y coordinate prediction
-predictions_plot <- data.frame(x_predictions, y_predictions) %>%
-  ggplot(aes(x0 = x_predictions, y0 = y_predictions, r = ring_5_diameter / 2)) +
-  geom_circle() +
-  ggtitle("Predictions")
-# Plot a circle the size of the final ring for each actual x and y coordinate
-actuals_plot <- apex_data_wide %>%
-  filter(gameID %in% x_test_set$gameID) %>%
-  ggplot(aes(x0 = x_5, y0 = y_5, r = ring_5_diameter / 2)) +
-  geom_circle() +
-  ggtitle("Actuals")
-# Display the two plots side-by-side
-grid.arrange(predictions_plot, actuals_plot, ncol = 2)
+# Plot the fitted against the residuals of the x_model
+# to see if there are any trends in the variance
+# This is a test to see if there are any problems with the x_model
+x_model$finalModel %>%
+  ggplot(aes(.fitted, .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  xlab("Final Model Fitted Values") +
+  ylab("Final Model Residuals") +
+  ggtitle("Fitted Values versus Residuals of X in GLMSTEPAIC Model")
+# Plot the fitted against the residuals of the y_model
+# to see if there are any trends in the variance
+# This is a test to see if there are any problems with the y_model
+y_model$finalModel %>%
+  ggplot(aes(.fitted, .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  xlab("Final Model Fitted Values") +
+  ylab("Final Model Residuals") +
+  ggtitle("Fitted Values versus Residuals of Y in GLMSTEPAIC Model")
 
-# Least Angle Regression
+# Cubist Regression
 # Train a model to predict the x coordinate
 # of the final stage of the ring in an Apex Legends match
 x_model <- train(
   x_5 ~ x_0 + x_1 + x_2 + x_3 + x_4,
   data = x_train_set,
-  method = "lars"
+  method = "cubist"
 )
 
 # Make predictions for x_5 in the x_test_set based on the x_model
@@ -536,22 +548,22 @@ x_predictions <- predict(x_model, newdata = x_test_set)
 
 # Since I'm not looking to be exact,
 # evaluate the accuracy of the predictions on a sliding scale
-lars_x_accuracy_within_250_meters <-
+cubist_x_accuracy_within_250_meters <-
   mean(
     x_predictions <= x_test_set$x_5 + 250 &
       x_predictions >= x_test_set$x_5 - 250
   )
-lars_x_accuracy_within_100_meters <-
+cubist_x_accuracy_within_100_meters <-
   mean(
     x_predictions <= x_test_set$x_5 + 100 &
       x_predictions >= x_test_set$x_5 - 100
   )
-lars_x_accuracy_within_50_meters <-
+cubist_x_accuracy_within_50_meters <-
   mean(
     x_predictions <= x_test_set$x_5 + 50 &
       x_predictions >= x_test_set$x_5 - 50
   )
-lars_x_accuracy_within_25_meters <-
+cubist_x_accuracy_within_25_meters <-
   mean(
     x_predictions <= x_test_set$x_5 + 25 &
       x_predictions >= x_test_set$x_5 - 25
@@ -562,7 +574,7 @@ lars_x_accuracy_within_25_meters <-
 y_model <- train(
   y_5 ~ y_0 + y_1 + y_2 + y_3 + y_4,
   data = y_train_set,
-  method = "lars"
+  method = "cubist"
 )
 
 # Make predictions for y_5 in the y_test_set based on the y_model
@@ -570,22 +582,22 @@ y_predictions <- predict(y_model, newdata = y_test_set)
 
 # Since I'm not looking to be exact,
 # evaluate the accuracy of the predictions on a sliding scale
-lars_y_accuracy_within_250_meters <-
+cubist_y_accuracy_within_250_meters <-
   mean(
     y_predictions <= y_test_set$y_5 + 250 &
       y_predictions >= y_test_set$y_5 - 250
   )
-lars_y_accuracy_within_100_meters <-
+cubist_y_accuracy_within_100_meters <-
   mean(
     y_predictions <= y_test_set$y_5 + 100 &
       y_predictions >= y_test_set$y_5 - 100
   )
-lars_y_accuracy_within_50_meters <-
+cubist_y_accuracy_within_50_meters <-
   mean(
     y_predictions <= y_test_set$y_5 + 50 &
       y_predictions >= y_test_set$y_5 - 50
   )
-lars_y_accuracy_within_25_meters <-
+cubist_y_accuracy_within_25_meters <-
   mean(
     y_predictions <= y_test_set$y_5 + 25 &
       y_predictions >= y_test_set$y_5 - 25
@@ -595,15 +607,15 @@ lars_y_accuracy_within_25_meters <-
 accuracy_results <- bind_rows(
   accuracy_results,
   data.frame(
-    method = "lars",
-    x_250 = lars_x_accuracy_within_250_meters,
-    x_100 = lars_x_accuracy_within_100_meters,
-    x_50 = lars_x_accuracy_within_50_meters,
-    x_25 = lars_x_accuracy_within_25_meters,
-    y_250 = lars_y_accuracy_within_250_meters,
-    y_100 = lars_y_accuracy_within_100_meters,
-    y_50 = lars_y_accuracy_within_50_meters,
-    y_25 = lars_y_accuracy_within_25_meters
+    method = "cubist",
+    x_250 = cubist_x_accuracy_within_250_meters,
+    x_100 = cubist_x_accuracy_within_100_meters,
+    x_50 = cubist_x_accuracy_within_50_meters,
+    x_25 = cubist_x_accuracy_within_25_meters,
+    y_250 = cubist_y_accuracy_within_250_meters,
+    y_100 = cubist_y_accuracy_within_100_meters,
+    y_50 = cubist_y_accuracy_within_50_meters,
+    y_25 = cubist_y_accuracy_within_25_meters
   )
 )
 accuracy_results %>% knitr::kable()
@@ -614,7 +626,7 @@ save(accuracy_results, file = "rda/accuracy_results.rda")
 rmse_results <- bind_rows(
   rmse_results,
   data.frame(
-    method = "lars",
+    method = "cubist",
     x_RMSE = x_model$results$RMSE,
     y_RMSE = y_model$results$RMSE
   )
@@ -624,16 +636,33 @@ rmse_results %>% knitr::kable()
 # Save the results to a RData file
 save(rmse_results, file = "rda/rmse_results.rda")
 
-# Plot a circle the size of the final ring for each x and y coordinate prediction
-predictions_plot <- data.frame(x_predictions, y_predictions) %>%
-  ggplot(aes(x0 = x_predictions, y0 = y_predictions, r = ring_5_diameter / 2)) +
-  geom_circle() +
-  ggtitle("Predictions")
-# Plot a circle the size of the final ring for each actual x and y coordinate
-actuals_plot <- apex_data_wide %>%
-  filter(gameID %in% x_test_set$gameID) %>%
-  ggplot(aes(x0 = x_5, y0 = y_5, r = ring_5_diameter / 2)) +
-  geom_circle() +
-  ggtitle("Actuals")
-# Display the two plots side-by-side
-grid.arrange(predictions_plot, actuals_plot, ncol = 2)
+# Plot the fitted against the residuals of the x_model
+# to see if there are any trends in the variance
+# This is a test to see if there are any problems with the x_model
+# Since "cubist" comes from a different library
+# I have to create my own data frame for plotting
+data.frame(
+  fitted = x_predictions,
+  resid = x_predictions - x_test_set$x_5
+) %>%
+  ggplot(aes(fitted, resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  xlab("Final Model Fitted Values") +
+  ylab("Final Model Residuals") +
+  ggtitle("Fitted Values versus Residuals of X in CUBIST Model")
+# Plot the fitted against the residuals of the y_model
+# to see if there are any trends in the variance
+# This is a test to see if there are any problems with the y_model
+# Since "cubist" comes from a different library
+# I have to create my own data frame for plotting
+data.frame(
+  fitted = y_predictions,
+  resid = y_predictions - y_test_set$y_5
+) %>%
+  ggplot(aes(fitted, resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  xlab("Final Model Fitted Values") +
+  ylab("Final Model Residuals") +
+  ggtitle("Fitted Values versus Residuals of Y in CUBIST Model")
