@@ -4,8 +4,6 @@
 # Jason Katsaros
 ##########################################################
 
-if (!require(renv))
-  install.packages("renv", repos = "http://cran.us.r-project.org")
 if (!require(jsonlite))
   install.packages("jsonlite", repos = "http://cran.us.r-project.org")
 if (!require(tidyverse))
@@ -23,7 +21,6 @@ if (!require(gganimate))
 if (!require(gridExtra))
   install.packages("gridExtra", repos = "http://cran.us.r-project.org")
 
-library(renv)
 library(jsonlite)
 library(tidyverse)
 library(caret)
@@ -32,9 +29,6 @@ library(ggforce)
 library(ggimage)
 library(gganimate)
 library(gridExtra)
-
-# Take a snapshot
-renv::snapshot()
 
 # Helper function to account for any NaN encountered within a data.frame
 is.nan.data.frame <- function(df)

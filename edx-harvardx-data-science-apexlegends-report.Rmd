@@ -54,8 +54,6 @@ knitr::include_graphics("images/storm_point_map.png")
 Throughout this capstone project I will use a number of R packages, including the previously mentioned `caret`[@caret] package. I will use the `jsonlite`[@jsonlite] and the `tidyverse`[@tidyverse] packages for data manipulation, and the `ggplot2`[@ggplot2], `ggforce`[@ggforce], `ggimage`[@ggimage], `gganimate`[@gganimate], and `gridExtra`[@gridextra] packages for visualizing data.
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE, eval = TRUE}
-if (!require(renv))
-  install.packages("renv", repos = "http://cran.us.r-project.org")
 if (!require(jsonlite))
   install.packages("jsonlite", repos = "http://cran.us.r-project.org")
 if (!require(tidyverse))
@@ -73,7 +71,6 @@ if (!require(gganimate))
 if (!require(gridExtra))
   install.packages("gridExtra", repos = "http://cran.us.r-project.org")
 
-library(renv)
 library(jsonlite)
 library(tidyverse)
 library(caret)
