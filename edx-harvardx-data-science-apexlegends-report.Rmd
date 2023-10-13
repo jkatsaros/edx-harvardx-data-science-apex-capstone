@@ -739,10 +739,10 @@ After testing a large number of algorithms made available through the `caret`[@c
 getModelInfo("cubist")
 ```
 
-This is a different type of regression from the linear regression we are used to seeing. Here, the "Cubist Regression" will a tree where each leaf on the tree is a linear regression. The "Cubist Regression" smooths the predictions taking into account previous linear regressions recursively all the way back up to the root of the tree. In the end, this tree creates a set of rules with which the model will make its predictions. I chose this algorithm out of all the others that I tested because:
+This is a different type of regression from the linear regression we are used to seeing. Here, the "Cubist Regression" will create a tree where each leaf on the tree is a linear regression. The "Cubist Regression" smooths the predictions taking into account previous linear regressions recursively all the way back up to the root of the tree. In the end, this tree creates a set of rules with which the model will make its predictions. I chose this algorithm out of all the others that I tested because:
 
 1. The RMSE most closely resembled those that have already been shown in this capstone, and
-2. Since I have proven thus far that it is possible to , reasonably, there must be a set of rules that Apex Legends uses to decide where the location of the final ring will fall. This is especially true in the Apex Legends Global Series (ALGS), the global tournament held throughout the year for Apex Legends battle royale where e-sports teams from all over the Earth battle it out to be the best of the best at Apex Legends. The ring destinations in each match for the ALGS are predetermined to create the most interesting situations in each game, which means there are rules that ultimately decide the location of the final ring in an Apex Legends match.
+2. Since I have proven thus far that it is possible to predict the approximate location of the final ring in an Apex Legends match, reasonably, there must be a set of rules that Apex Legends uses to decide where the location of the final ring will fall. This is especially true in the Apex Legends Global Series (ALGS), the global tournament held throughout the year for Apex Legends battle royale where e-sports teams from all over the Earth battle it out to be the best of the best at Apex Legends. The ring destinations in each match for the ALGS are predetermined to create the most interesting situations in each game, which means there are rules that ultimately decide the location of the final ring in an Apex Legends match.
 
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
 # Cubist Regression
@@ -848,7 +848,7 @@ rmse_results %>% knitr::kable()
 save(rmse_results, file = "rda/rmse_results.rda")
 ```
 
-Again, the rest of the R code should be familiar, where I gather the accuracy and and RMSEs of each model's predictions. Also, below is the usual plot displaying if there are any patterns to the variance in the model, of which there are none.
+In the above table, you can see that the `caret`[@caret] package automatically creates different iterations on the `cubist` model, which is why there are multiple entries under `cubist` in the RMSE table. The rest of the R code should be familiar, where I gather the accuracy and and RMSEs of each model's predictions. Also, below is the usual plot displaying if there are any patterns to the variance in the model, of which there are none.
 
 ```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
 # Plot the fitted against the residuals of the x_model
